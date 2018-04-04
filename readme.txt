@@ -1,0 +1,26 @@
+NOTE: Upon learning about bacnet and attempting to understand the programming exercise, the exercise appeared to require knowledge of networking. Unfortunately, I have not taken any networking related courses so I tried understanding what I could using HTTP which seemed like a similar protocol but with more online resources available for learning. I could not however fully understand bacnet code itself and therefore chose to describe my understanding of bacnet on a higher level and include a working HTTP solution to the programming exercise to go along with this description. 
+
+What is bacnet?
+---------------
+In a building, there are various devices that control different functions such as controlling the temperature of the building, turning lights on or off, etc. Bacnet is a set of guidelines that explain how these devices can talk with each other and also with a client through a central server. The client, for example, could be a computer in the building with an interface to manage these different devices such as setting the temperature to a certain value, turning off lights, etc. The different devices are also clients that connect to the server and can response to requests made by the server or send out their own requests if their own functionality depends on information from other devices. 
+
+Therefore, bacnet explains how the client can make a request to the server on which the devices are connected and then how the server should respond. For example, bacnet specifies how a device can to read various data points from another device connected to the server such as that device’s current value (PROP_PRESENT_VALUE). So the requesting device would ask the server to send the current value of the second device, the server would then ask the second device what it’s current value is and then return that value to the requesting device. There are also other guidelines for discovering new devices added onto the server. 
+
+So, in summary, bacnet is a protocol that allows devices to communicate with each other in a systematic way such that each device can request information from other devices on the network and respond to requests for information made to it from other devices as well.
+
+=========================================================================
+
+HTTP Server/Client Explanation:
+A working HTTP-based server/client program is included to demonstrate understanding of the overall concepts of bacnet and its ability to facilitate communication between different devices.
+
+server.cpp:
+-----------
+This is the server program. It is accessed via the localhost IP address 127.0.0.1 and the port 54000. The IP/Port pair allows clients to determine which server and which application within the server they want to access. This pair is then bound to a socket provided by the Window’s socket API. The server then listens for new clients attempting to connect to the server on this port. Once an attempt is detected, it assigns a new socket, therefore a new port along with the localhost IP to the client attempting to connect and establishes a connection on which the two ends can communicate. Multiple clients can connect in this same way with a new socket for each connect being generated. The sockets are then stored in an array allowing us to move between them and send information received by one socket to another socket.
+
+client.cpp: 
+-----------
+This is the client program that allows a user to connect to the server and request information about various other devices, each of which themselves are clients on the same as well. The initial process is very similar. We once again create a socket with the same IP address and port above. In this case however, this uniquely specifies the server we want to connect to, not information about the client itself. Once this is done, we connect to the server via the socket we just created. Once the connection is made, we can send/receive information to/from the server. In the case of this program, one can type in “Status” as an input. This will result in the string “Status” being sent to the server. The server will receive this message and send it to all other clients, in our case this will be the bulb client since it’s the only other client connected to the server. The bulb client will receive and respond to the message and the server will send that response to all other clients which now will be this client. 
+
+observer.cpp: 
+-------------
+This is our bulb observer mimicking a bacnet observer. In reality, this could be some sort of microcontroller that physically controls our light and stores various data points about the light. In the case of this program however, the observer is just a modified client. When it receives messages from the server, it checks the contents of the message and compares it to the string “Status”. If the comparison is true, it returns the status of the lights, otherwise it returns an error message. In a real bacnet system, the client, and in turn the server, would send a message consisting of the number associated with the particular property of the device the client is interested in, such as 85 for the PROP_PRESENT_VALUE property mentioned earlier and the microcontroller would handle retrieving the correct piece of data internally and send that data to the server. 
